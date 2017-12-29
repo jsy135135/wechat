@@ -5,7 +5,7 @@
  * @email:732677288@qq.com
  * @Date:   2017-12-28 10:39:11
  * @Last Modified by:   jsy135135
- * @Last Modified time: 2017-12-28 16:59:54
+ * @Last Modified time: 2017-12-29 09:20:13
  */
 // 测试调用方法
 require './wechat.class.php';
@@ -26,8 +26,8 @@ $wechat = new Wechat();
 // 下载素材
 // $wechat->download();
 // 创建菜单
-// $wechat->createMenu();
+$wechat->createMenu();
 // 查看菜单
-$wechat->showMenu();
+// $wechat->showMenu();
 // 删除菜单
 // $wechat->delMenu();

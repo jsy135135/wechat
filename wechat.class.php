@@ -1,15 +1,16 @@
 <?php
 
-// 引入配置文件
-require './wechat.cfg.php';
-
 /**
  * @Author: jsy135135
  * @email:732677288@qq.com
  * @Date:   2017-12-26 11:53:10
  * @Last Modified by:   jsy135135
- * @Last Modified time: 2017-12-28 16:59:19
+ * @Last Modified time: 2017-12-29 10:46:06
  */
+
+// 引入配置文件
+require './wechat.cfg.php';
+
 class Wechat
 {
     // 构造方法
@@ -28,6 +29,66 @@ class Wechat
           <Content><![CDATA[%s]]></Content>
           <FuncFlag>0</FuncFlag>
           </xml>";
+      $this->newsTpl = "<xml>
+            <ToUserName><![CDATA[%s]]></ToUserName>
+            <FromUserName><![CDATA[%s]]></FromUserName>
+            <CreateTime>%s</CreateTime>
+            <MsgType><![CDATA[news]]></MsgType>
+            <ArticleCount>%s</ArticleCount>
+            <Articles>%s</Articles>
+            </xml>";
+      $this->itemTpl = "<item>
+            <Title><![CDATA[%s]]></Title>
+            <Description><![CDATA[%s]]></Description>
+            <PicUrl><![CDATA[%s]]></PicUrl>
+            <Url><![CDATA[%s]]></Url>
+            </item>";
+      $this->imageTpl = "<xml>
+            <ToUserName>
+                <![CDATA[%s]]>
+            </ToUserName>
+            <FromUserName>
+                <![CDATA[%s]]>
+            </FromUserName>
+            <CreateTime>%s</CreateTime>
+            <MsgType>
+                <![CDATA[image]]>
+            </MsgType>
+            <Image>
+                <MediaId>
+                    <![CDATA[%s]]>
+                </MediaId>
+            </Image>
+            </xml>";
+      $this->musicTpl = "<xml>
+            <ToUserName>
+                <![CDATA[%s]]>
+            </ToUserName>
+            <FromUserName>
+                <![CDATA[%s]]>
+            </FromUserName>
+            <CreateTime>%s</CreateTime>
+            <MsgType>
+                <![CDATA[music]]>
+            </MsgType>
+            <Music>
+                <Title>
+                    <![CDATA[%s]]>
+                </Title>
+                <Description>
+                    <![CDATA[%s]]>
+                </Description>
+                <MusicUrl>
+                    <![CDATA[%s]]>
+                </MusicUrl>
+                <HQMusicUrl>
+                    <![CDATA[%s]]>
+                </HQMusicUrl>
+                <ThumbMediaId>
+                    <![CDATA[%s]]>
+                </ThumbMediaId>
+            </Music>
+        </xml>";
     }
     // 验证方法
     public function valid()
@@ -113,6 +174,14 @@ class Wechat
           $contentStr = "Hello PHP world!";
           if($keyword == '你是谁'){
             $contentStr = "目前我也不知道，我是谁，我是谁的谁！";
+          }
+          if($keyword === '参加活动')
+          {
+            $this->sendPic($postObj);exit();
+          }
+          if($keyword === '音乐')
+          {
+            $this->sendMusic($postObj);exit();
           }
           // 接入自动回复机器人
           $url = "http://api.qingyunke.com/api.php?key=free&appid=0&msg=".$keyword;
@@ -258,6 +327,10 @@ class Wechat
         // 已关注扫描二维码事件
           $this->doScan($postObj);
           break;
+        case 'CLICK':
+        // 自定义菜单点击事件
+          $this->doCLICK($postObj);
+          break;
         default:
           # code...
           break;
@@ -269,6 +342,7 @@ class Wechat
       if($postObj->EventKey){
         // 未关注扫描带参数的二维码事件
         $contentStr = '欢迎关注我们!请常联系!,您参加的活动代码为'.$postObj->EventKey;
+        $this->sendNews($postObj);die();
         $resultStr = sprintf($this->textTpl,$postObj->FromUserName,$postObj->ToUserName,time(),'text',$contentStr);
         echo $resultStr;
       }else{
@@ -393,9 +467,9 @@ class Wechat
                          "type": "scancode_push",
                          "name": "扫码推事件",
                          "key": "rselfmenu_0_1",
-                         "sub_button": [ ]
+                         "sub_button": []
                       }
-                    ]
+                   ]
                  }]
            }';
       // 3.发送请求
@@ -436,5 +510,74 @@ class Wechat
         echo '删除失败';
         echo '错误代码'.$content->errcode;
       }
+    }
+    // 自定义菜单点击事件处理
+    public function doCLICK($postObj)
+    {
+      // 通过判断不同key值
+      switch ($postObj->EventKey) {
+        // 处理最新资讯的key news
+        case 'news':
+          $this->sendNews($postObj);
+          break;
+
+        default:
+          # code...
+          break;
+      }
+    }
+    // 发送图文
+    public function sendNews($postObj)
+    {
+      // 获取一些数据,可以从之前已经存储的数据库找
+      $data = array(
+        array(
+          'Title' => '这条“路”，习近平关心了40多年',
+          'Description' => '这是追梦之路，连接着脱贫致富的深切渴望。',
+          'PicUrl' => 'http://dingyue.nosdn.127.net/8OrPmFDx5v1b=Oa3Gg7e8JRnA88YJ0KzgY3KloUEPjn7G1514451190566.jpg',
+          'Url' => 'http://news.163.com/17/1228/16/D6OPQNV6000189FH.html'
+        ),
+        array(
+          'Title' => '武警部队为什么要归中央军委统一领导？',
+          'Description' => '昨天，武警部队调整建制归属的新闻刷爆了朋友圈',
+          'PicUrl' => 'http://dingyue.nosdn.127.net/cfZUAjVlpBnyaWRzOTlffNJfB1C24HNPN=ZIWnTeE3UGm1514474020493transferflag.png',
+          'Url' => 'http://news.163.com/17/1228/23/D6PFFTR60001875N.html'
+        ),
+        array(
+          'Title' => '《全民道士》开机 "星女郎"张美娥将演重要角色',
+          'Description' => '大连晚报8月27日报道 由潮旭银河文化传媒（大连）出品， 大连胜观文化传媒拍摄的网络大电影《全民道士》，昨天上午在大连滨海路开机。',
+          'PicUrl' => 'http://img5.cache.netease.com/ent/2016/8/27/20160827091403f5057_550.jpg',
+          'Url' => 'http://ent.163.com/16/0827/09/BVFDC4J3000300B1.html'
+        ),
+      );
+      // 拼接单个新闻
+      $items = '';
+      foreach ($data as $key => $value) {
+        $items .= sprintf($this->itemTpl,$value['Title'],$value['Description'],$value['PicUrl'],$value['Url']);
+      }
+      // 拼接图文消息xml
+      $resultStr = sprintf($this->newsTpl,$postObj->FromUserName,$postObj->ToUserName,time(),count($data),$items);
+      // 输出xml
+      echo $resultStr;
+    }
+    // 发送图片
+    public function sendPic($postObj)
+    {
+      $media_id = 'F9nDoxI-0zuvlH4WOMGs4B697FJ0AHOmc_WzlBsON3jTWHaJTtzxiQawTT9ZGZrJ';
+      // 拼接图片模板
+      $resultStr = sprintf($this->imageTpl,$postObj->FromUserName,$postObj->ToUserName,time(),$media_id);
+      echo $resultStr;
+    }
+    // 发送音乐
+    public function sendMusic($postObj)
+    {
+      $Title = '窜天猴';
+      $Description = '胡超';
+      $MusicUrl = 'http://47.88.217.149/wechat/1.mp3';
+      $HQMusicUrl = $MusicUrl;
+      $ThumbMediaId = 'F9nDoxI-0zuvlH4WOMGs4B697FJ0AHOmc_WzlBsON3jTWHaJTtzxiQawTT9ZGZrJ';
+      $resultStr = sprintf($this->musicTpl,$postObj->FromUserName,$postObj->ToUserName,time(),$Title,$Description,$MusicUrl,$HQMusicUrl,$ThumbMediaId);
+      echo $resultStr;
+      file_put_contents('musicTpl.xml',$resultStr);
     }
 }
